@@ -3,10 +3,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from src.routes import colleges, reviews, validate, ai_suggestion, auth
+from fastapi.staticfiles import StaticFiles
+import os
 
 load_dotenv()
 
 app = FastAPI()
+
+# Serve static images from /images
+images_path = os.path.join(os.path.dirname(__file__), '../../college-frontend/public/images')
+app.mount("/images", StaticFiles(directory=images_path), name="images")
 
 app.add_middleware(
     CORSMiddleware,

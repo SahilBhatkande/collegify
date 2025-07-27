@@ -1,8 +1,8 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from src.models.user import User, UserLogin
 from src.utils.database import users_collection
-from src.utils.auth import verify_password, get_password_hash, create_access_token
+from src.utils.auth import verify_password, get_password_hash, create_access_token, get_current_user
 from bson import ObjectId
 
 router = APIRouter(prefix="/auth", tags=["auth"])  # Prefix ensures /auth/register
@@ -26,3 +26,7 @@ def login(user: UserLogin):
         raise HTTPException(status_code=400, detail="Invalid credentials")
     access_token = create_access_token(data={"sub": str(db_user["_id"])})
     return {"token": access_token, "user": {"id": str(db_user["_id"]), "name": db_user["name"], "email": db_user["email"]}}
+
+@router.get("/me")
+def get_me(current_user: dict = Depends(get_current_user)):
+    return {"id": str(current_user["_id"]), "name": current_user["name"], "email": current_user["email"]}

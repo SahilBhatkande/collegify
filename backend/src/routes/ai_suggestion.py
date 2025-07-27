@@ -3,6 +3,9 @@ from src.utils.database import colleges_collection
 import requests
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
+import json
+import re
 
 load_dotenv()
 
@@ -12,15 +15,14 @@ router = APIRouter()
 def get_ai_suggestions(data: dict):
     api_key = os.getenv("API_KEY")
     try:
-        response = requests.post(
-            "https://api.collegeai.com/data",
-            json=data,
-            headers={"Authorization": f"{api_key}"}
-        )
-        response.raise_for_status()
-        colleges = response.json()
-        return colleges
-    except Exception:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-pro')
+        prompt = data.get('prompt') or data.get('preferences') or ''
+        if not prompt:
+            return {"error": "No prompt provided."}
+        response = model.generate_content(prompt)
+        return {"response": response.text}
+    except Exception as e:
         query = {}
         if data.get("college_id"):
             query["college_id"] = data.get("college_id")
